@@ -1,9 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <windows.h>
 
 int boardWidth = 10;
 int boardHeight = 10;
+int updateDelay = 500;
+
+Int2D direction = Int2D(0, 0);
 
 char boardChar = '-';
 char playerChar = 'O';
@@ -31,8 +35,22 @@ std::vector<Int2D> initPlayer()
 	return playerPos;
 }
 
-void displayBoard(std::vector<Int2D> playerPos)
+void ClearConsole()
 {
+#if defined _WIN32
+	system("cls");
+	//clrscr(); // including header file : conio.h
+#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
+	system("clear");
+	//std::cout<< u8"\033[2J\033[1;1H"; //Using ANSI Escape Sequences 
+#elif defined (__APPLE__)
+	system("clear");
+#endif
+}
+
+void displayBoard(std::vector<Int2D> &playerPos)
+{
+	ClearConsole();
 	for (int i = 0; i < boardHeight; i++)
 	{
 		for (int j = 0; j < boardWidth; j++)
@@ -50,8 +68,38 @@ void displayBoard(std::vector<Int2D> playerPos)
 	
 }
 
+void GetKeyboardInput()
+{
+	if (GetKeyState('A') & 0x8000)
+	{
+		direction = Int2D(-1, 0);
+	}
+	else if (GetKeyState('D') & 0x8000)
+	{
+		direction = Int2D(1, 0);
+	}
+	else if (GetKeyState('W') & 0x8000)
+	{
+		direction = Int2D(0, 1);
+	}
+	else if (GetKeyState('S') & 0x8000)
+	{
+		direction = Int2D(0, -1);
+	}
+}
+
+void UpdatePlayer(std::vector<Int2D> &playerPos)
+{
+	GetKeyboardInput();
+
+}
+
 int main()
 {
 	std::vector<Int2D> playerPos = initPlayer();
-	displayBoard(playerPos);
+	while (true)
+	{
+		displayBoard(playerPos);
+		Sleep(updateDelay);
+	}
 }
