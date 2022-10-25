@@ -29,6 +29,7 @@ struct Int2D
 };
 
 Int2D direction = Int2D(0, 0);
+Int2D fruitPos = Int2D(0, 0);
 
 std::vector<Int2D> initPlayer()
 {
@@ -60,6 +61,10 @@ void displayBoard(std::vector<Int2D> &playerPos)
 		{
 			if (std::find(playerPos.begin(), playerPos.end(), Int2D(j, i)) != playerPos.end()) {
 				std::cout << playerChar;
+			}
+			else if(fruitPos == Int2D(j, i))
+			{
+				std::cout << fruitChar;
 			}
 			else
 			{
@@ -93,19 +98,31 @@ void GetKeyboardInput()
 
 void UpdatePlayer(std::vector<Int2D> &playerPos)
 {
-	GetKeyboardInput();
 	Int2D newPos = playerPos.back() + direction;
 	playerPos.push_back(newPos);
-	playerPos.erase(playerPos.begin());
+
+	if (newPos == fruitPos)
+	{
+		fruitPos = Int2D(rand() % boardWidth, rand() % boardHeight);
+	}
+	else
+	{
+		playerPos.erase(playerPos.begin());
+	}
+	
 }
 
 int main()
 {
+	srand((unsigned)time(NULL));
 	std::vector<Int2D> playerPos = initPlayer();
+
+	// Main loop
 	while (true)
 	{
 		displayBoard(playerPos);
 		Sleep(updateDelay);
+		GetKeyboardInput();
 		UpdatePlayer(playerPos);
 	}
 }
