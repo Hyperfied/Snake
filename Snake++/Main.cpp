@@ -95,7 +95,7 @@ void GetKeyboardInput()
 	}
 }
 
-void updatePlayer(std::vector<Int2D> &playerPos)
+bool updatePlayer(std::vector<Int2D> &playerPos)
 {
 	Int2D newPos = playerPos.back() + direction;
 
@@ -103,7 +103,7 @@ void updatePlayer(std::vector<Int2D> &playerPos)
 
 	if (newPos.x < 0 || newPos.x >= boardWidth || newPos.y < 0 || newPos.y >= boardHeight)
 	{
-		std::cout << "You  died m8";
+		return true;
 	}
 
 	for (size_t i = 0; i < playerPos.size(); i++)
@@ -111,7 +111,7 @@ void updatePlayer(std::vector<Int2D> &playerPos)
 		if (newPos == playerPos.at(i))
 		{
 			// Not unique! == collision
-			std::cout << "You  killed urself m";
+			return true;
 		}
 	}
 
@@ -152,6 +152,23 @@ void updatePlayer(std::vector<Int2D> &playerPos)
 		playerPos.erase(playerPos.begin());
 	}
 
+	// Increase speed
+
+	switch (playerPos.size())
+	{
+	case 5:
+		updateDelay = 400;
+		break;
+	case 10:
+		updateDelay = 300;
+		break;
+	case 15:
+		updateDelay = 200;
+		break;
+	}
+
+	return false;
+
 	
 }
 
@@ -165,8 +182,17 @@ int main()
 	// Main loop
 	while (true)
 	{
-		Sleep(updateDelay);
+		Sleep(updateDelay/2);
 		GetKeyboardInput();
-		updatePlayer(playerPos);
+		Sleep(updateDelay / 2);
+		GetKeyboardInput();
+		if (updatePlayer(playerPos))
+		{
+			break;
+		}
 	}
+	setCursorLocation(textPos);
+	std::cout << "You died!";
+	Sleep(1000);
+	std::cin;
 }
