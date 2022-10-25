@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "VectorChar2D.h"
+#include <algorithm>
 
 int boardWidth = 10;
 int boardHeight = 10;
@@ -9,39 +9,49 @@ char boardChar = '-';
 char playerChar = 'O';
 char fruitChar = '#';
 
-VectorChar2D initBoard()
+struct Int2D
 {
-	VectorChar2D board;
-
-	for (int i = 0; i < boardHeight; i++)
-	{
-		std::vector<char> addVector;
-		board.push_back(addVector);
-		for (int j = 0; j < boardWidth; j++)
-		{
-			board[i].push_back(boardChar);
-		}
+	int x, y;
+	Int2D(int x, int y) {
+		this->x = x;
+		this->y = y;
 	}
+	bool operator==(const Int2D& b)
+	{
+		return (this->x == b.x) && (this->y == b.y);
+	}
+};
 
-	return board;
+
+std::vector<Int2D> initPlayer()
+{
+	std::vector<Int2D> playerPos;
+	Int2D startPos = { boardWidth / 2, boardHeight / 2 };
+	playerPos.push_back(startPos);
+	return playerPos;
 }
 
-void displayBoard(VectorChar2D board)
+void displayBoard(std::vector<Int2D> playerPos)
 {
-	for (size_t i = 0; i < board.size(); i++)
+	for (int i = 0; i < boardHeight; i++)
 	{
-		for (size_t j = 0; j < board[i].size(); j++)
+		for (int j = 0; j < boardWidth; j++)
 		{
-			std::cout << board[i][j];
+			if (std::find(playerPos.begin(), playerPos.end(), Int2D(j, i)) != playerPos.end()) {
+				std::cout << playerChar;
+			}
+			else
+			{
+				std::cout << boardChar;
+			}
 		}
 		std::cout << std::endl;
 	}
+	
 }
-
-
 
 int main()
 {
-	VectorChar2D board = initBoard();
-	displayBoard(board);
+	std::vector<Int2D> playerPos = initPlayer();
+	displayBoard(playerPos);
 }
