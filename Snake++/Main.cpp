@@ -7,8 +7,6 @@ int boardWidth = 10;
 int boardHeight = 10;
 int updateDelay = 500;
 
-Int2D direction = Int2D(0, 0);
-
 char boardChar = '-';
 char playerChar = 'O';
 char fruitChar = '#';
@@ -24,8 +22,13 @@ struct Int2D
 	{
 		return (this->x == b.x) && (this->y == b.y);
 	}
+	Int2D operator+(const Int2D& b)
+	{
+		return Int2D(this->x + b.x, this->y + b.y);
+	}
 };
 
+Int2D direction = Int2D(0, 0);
 
 std::vector<Int2D> initPlayer()
 {
@@ -80,18 +83,20 @@ void GetKeyboardInput()
 	}
 	else if (GetKeyState('W') & 0x8000)
 	{
-		direction = Int2D(0, 1);
+		direction = Int2D(0, -1);
 	}
 	else if (GetKeyState('S') & 0x8000)
 	{
-		direction = Int2D(0, -1);
+		direction = Int2D(0, 1);
 	}
 }
 
 void UpdatePlayer(std::vector<Int2D> &playerPos)
 {
 	GetKeyboardInput();
-
+	Int2D newPos = playerPos.back() + direction;
+	playerPos.push_back(newPos);
+	playerPos.erase(playerPos.begin());
 }
 
 int main()
@@ -101,5 +106,6 @@ int main()
 	{
 		displayBoard(playerPos);
 		Sleep(updateDelay);
+		UpdatePlayer(playerPos);
 	}
 }
