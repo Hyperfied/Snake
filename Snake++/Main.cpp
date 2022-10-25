@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <windows.h>
+#include <set>
 
 int boardWidth = 10;
 int boardHeight = 10;
@@ -26,10 +27,15 @@ struct Int2D
 	{
 		return Int2D(this->x + b.x, this->y + b.y);
 	}
+	bool operator!=(const Int2D& b)
+	{
+		return !(Int2D(this->x, this->y) == b);
+	}
 };
 
-Int2D direction = Int2D(0, 0);
+Int2D direction = Int2D(1, 0);
 Int2D fruitPos = Int2D(0, 0);
+Int2D textPos = Int2D(0, boardHeight);
 
 std::vector<Int2D> initPlayer()
 {
@@ -39,22 +45,8 @@ std::vector<Int2D> initPlayer()
 	return playerPos;
 }
 
-void ClearConsole()
+void initBoard(std::vector<Int2D> playerPos)
 {
-#if defined _WIN32
-	system("cls");
-	//clrscr(); // including header file : conio.h
-#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__)
-	system("clear");
-	//std::cout<< u8"\033[2J\033[1;1H"; //Using ANSI Escape Sequences 
-#elif defined (__APPLE__)
-	system("clear");
-#endif
-}
-
-void displayBoard(std::vector<Int2D> &playerPos)
-{
-	ClearConsole();
 	for (int i = 0; i < boardHeight; i++)
 	{
 		for (int j = 0; j < boardWidth; j++)
@@ -62,7 +54,7 @@ void displayBoard(std::vector<Int2D> &playerPos)
 			if (std::find(playerPos.begin(), playerPos.end(), Int2D(j, i)) != playerPos.end()) {
 				std::cout << playerChar;
 			}
-			else if(fruitPos == Int2D(j, i))
+			else if (fruitPos == Int2D(j, i))
 			{
 				std::cout << fruitChar;
 			}
@@ -73,7 +65,14 @@ void displayBoard(std::vector<Int2D> &playerPos)
 		}
 		std::cout << std::endl;
 	}
-	
+}
+
+void setCursorLocation(Int2D int2d)
+{
+	static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	std::cout.flush();
+	COORD coord = { (SHORT)int2d.x, (SHORT)int2d.y };
+	SetConsoleCursorPosition(hOut, coord);
 }
 
 void GetKeyboardInput()
@@ -96,19 +95,63 @@ void GetKeyboardInput()
 	}
 }
 
-void UpdatePlayer(std::vector<Int2D> &playerPos)
+void updatePlayer(std::vector<Int2D> &playerPos)
 {
 	Int2D newPos = playerPos.back() + direction;
+
+	// Out of bounds / collide with self.
+
+	if (newPos.x < 0 || newPos.x >= boardWidth || newPos.y < 0 || newPos.y >= boardHeight)
+	{
+		std::cout << "You  died m8";
+	}
+
+	for (size_t i = 0; i < playerPos.size(); i++)
+	{
+		if (newPos == playerPos.at(i))
+		{
+			// Not unique! == collision
+			std::cout << "You  killed urself m";
+		}
+	}
+
+	// Movement
+	
+	setCursorLocation(newPos);
+	std::cout << playerChar;
+	setCursorLocation(textPos);
+
 	playerPos.push_back(newPos);
 
 	if (newPos == fruitPos)
 	{
-		fruitPos = Int2D(rand() % boardWidth, rand() % boardHeight);
+		setCursorLocation(fruitPos);
+		std::cout << playerChar;
+		setCursorLocation(textPos);
+		bool positionOccupied = true;
+		while (positionOccupied)
+		{
+			positionOccupied = false;
+			fruitPos = Int2D(rand() % boardWidth, rand() % boardHeight);
+			for (size_t i = 0; i < playerPos.size(); i++)
+			{
+				if (fruitPos == playerPos.at(i)) {
+					positionOccupied = true;
+				}
+			}
+		}
+		setCursorLocation(fruitPos);
+		std::cout << fruitChar;
+		setCursorLocation(textPos);
 	}
 	else
 	{
+		setCursorLocation(playerPos.at(0));
+		std::cout << boardChar;
+		setCursorLocation(textPos);
 		playerPos.erase(playerPos.begin());
 	}
+
 	
 }
 
@@ -117,12 +160,13 @@ int main()
 	srand((unsigned)time(NULL));
 	std::vector<Int2D> playerPos = initPlayer();
 
+	initBoard(playerPos);
+
 	// Main loop
 	while (true)
 	{
-		displayBoard(playerPos);
 		Sleep(updateDelay);
 		GetKeyboardInput();
-		UpdatePlayer(playerPos);
+		updatePlayer(playerPos);
 	}
 }
